@@ -1,0 +1,20 @@
+{
+  "name": "relay-status-page-f9-test",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Relay Status Page F9 Test — API contract and TypeScript client stubs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "validate:openapi": "tsx scripts/validate-openapi.ts",
+    "generate:client": "tsx scripts/generate-client.ts",
+    "test": "tsx scripts/generate-client.ts && tsx scripts/self-check.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript-codegen": "^0.29.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "yaml": "^2.6.1"
+  }
+}
