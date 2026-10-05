@@ -1,0 +1,259 @@
+openapi: 3.0.3
+info:
+  title: Relay Status Page API
+  description: >
+    Technical contract for the Relay Status Page service. Defines service health status and incident
+    management endpoints used by the React client and monitoring agents.
+  version: 1.0.0
+  contact:
+    name: Relay Platform Team
+servers:
+  - url: /
+    description: Relative to the API host
+tags:
+  - name: Status
+    description: Service health status
+  - name: Incidents
+    description: Incident lifecycle management
+paths:
+  /api/status:
+    get:
+      tags:
+        - Status
+      operationId: listServiceStatuses
+      summary: List service statuses
+      description: Returns the current health status for all tracked services.
+      responses:
+        "200":
+          description: Current service statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ServiceStatus"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - Status
+      operationId: upsertServiceStatus
+      summary: Create or update a service status
+      description: Ingests a health-check result for a named service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceStatusInput"
+      responses:
+        "201":
+          description: Status recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/incidents:
+    get:
+      tags:
+        - Incidents
+      operationId: listIncidents
+      summary: List incidents
+      description: Returns known incidents, newest first.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Filter by incident status
+          schema:
+            $ref: "#/components/schemas/IncidentStatus"
+      responses:
+        "200":
+          description: Incident list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Incident"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - Incidents
+      operationId: createIncident
+      summary: Create an incident
+      description: Opens a new incident record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncidentInput"
+      responses:
+        "201":
+          description: Incident created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Incident"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+components:
+  schemas:
+    HealthState:
+      type: string
+      description: Aggregate or per-service health indicator
+      enum:
+        - operational
+        - degraded
+        - partial_outage
+        - major_outage
+        - maintenance
+    ServiceStatus:
+      type: object
+      description: Current health status for a single service
+      required:
+        - id
+        - name
+        - status
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Stable service identifier
+        name:
+          type: string
+          minLength: 1
+          description: Human-readable service name
+        status:
+          $ref: "#/components/schemas/HealthState"
+        description:
+          type: string
+          description: Optional operator-facing note
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last status change timestamp (ISO-8601)
+    ServiceStatusInput:
+      type: object
+      description: Payload for recording a service health check
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          minLength: 1
+        status:
+          $ref: "#/components/schemas/HealthState"
+        description:
+          type: string
+    IncidentStatus:
+      type: string
+      description: Lifecycle state of an incident
+      enum:
+        - investigating
+        - identified
+        - monitoring
+        - resolved
+    IncidentSeverity:
+      type: string
+      description: Impact severity of an incident
+      enum:
+        - minor
+        - major
+        - critical
+    Incident:
+      type: object
+      description: A service interruption or degradation event
+      required:
+        - id
+        - title
+        - status
+        - severity
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        status:
+          $ref: "#/components/schemas/IncidentStatus"
+        severity:
+          $ref: "#/components/schemas/IncidentSeverity"
+        affectedServices:
+          type: array
+          items:
+            type: string
+          description: Service names impacted by this incident
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+    IncidentInput:
+      type: object
+      description: Payload for opening a new incident
+      required:
+        - title
+        - status
+        - severity
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        status:
+          $ref: "#/components/schemas/IncidentStatus"
+        severity:
+          $ref: "#/components/schemas/IncidentSeverity"
+        affectedServices:
+          type: array
+          items:
+            type: string
+    ErrorBody:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorBody"
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorBody"
