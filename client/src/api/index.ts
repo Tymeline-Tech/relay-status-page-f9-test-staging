@@ -7,8 +7,8 @@ export type { OpenAPIConfig } from './generated/core/OpenAPI';
 export { ApiError } from './generated/core/ApiError';
 export type { ServiceStatus } from './generated/models/ServiceStatus';
 export type { Incident } from './generated/models/Incident';
-export type { ServiceStatusInput } from './generated/models/ServiceStatusInput';
-export type { IncidentInput } from './generated/models/IncidentInput';
+export type { ServiceStatusEnum } from './generated/models/ServiceStatusEnum';
+export type { IncidentSeverity } from './generated/models/IncidentSeverity';
 
 import { apiClient } from './generated/apiClient';
 import type { OpenAPIConfig } from './generated/core/OpenAPI';

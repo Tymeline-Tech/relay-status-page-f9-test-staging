@@ -3,27 +3,32 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { Incident } from '../models/Incident';
-import type { IncidentInput } from '../models/IncidentInput';
-import type { IncidentStatus } from '../models/IncidentStatus';
+import type { IncidentSeverity } from '../models/IncidentSeverity';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class IncidentsService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
      * List incidents
-     * Returns known incidents, newest first.
-     * @param status Filter by incident status
+     * Returns known incidents, optionally filtered by query parameters.
+     * @param serviceId Filter incidents by related service identifier
+     * @param severity Filter incidents by severity level
+     * @param resolved When true, return only resolved incidents; when false, only open ones
      * @returns Incident Incident list
      * @throws ApiError
      */
     public listIncidents(
-        status?: IncidentStatus,
+        serviceId?: string,
+        severity?: IncidentSeverity,
+        resolved?: boolean,
     ): CancelablePromise<Array<Incident>> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/api/incidents',
             query: {
-                'status': status,
+                'service_id': serviceId,
+                'severity': severity,
+                'resolved': resolved,
             },
             errors: {
                 500: `Unexpected server error`,
@@ -38,7 +43,7 @@ export class IncidentsService {
      * @throws ApiError
      */
     public createIncident(
-        requestBody: IncidentInput,
+        requestBody: Incident,
     ): CancelablePromise<Incident> {
         return this.httpRequest.request({
             method: 'POST',

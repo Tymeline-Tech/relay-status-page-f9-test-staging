@@ -3,6 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Lifecycle state of an incident
+ * Traffic-light health indicator for a service
  */
-export type IncidentStatus = 'investigating' | 'identified' | 'monitoring' | 'resolved';
+export type ServiceStatusEnum = 'green' | 'yellow' | 'red';

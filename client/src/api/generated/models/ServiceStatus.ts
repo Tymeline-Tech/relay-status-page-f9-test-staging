@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { HealthState } from './HealthState';
+import type { ServiceStatusEnum } from './ServiceStatusEnum';
 /**
  * Current health status for a single service
  */
@@ -15,14 +15,10 @@ export type ServiceStatus = {
      * Human-readable service name
      */
     name: string;
-    status: HealthState;
+    status: ServiceStatusEnum;
     /**
-     * Optional operator-facing note
+     * Timestamp of the most recent health check (ISO-8601)
      */
-    description?: string;
-    /**
-     * Last status change timestamp (ISO-8601)
-     */
-    updatedAt: string;
+    last_checked: string;
 };
 

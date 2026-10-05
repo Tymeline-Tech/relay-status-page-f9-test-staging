@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ServiceStatus } from '../models/ServiceStatus';
-import type { ServiceStatusInput } from '../models/ServiceStatusInput';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class StatusService {
@@ -31,7 +30,7 @@ export class StatusService {
      * @throws ApiError
      */
     public upsertServiceStatus(
-        requestBody: ServiceStatusInput,
+        requestBody: ServiceStatus,
     ): CancelablePromise<ServiceStatus> {
         return this.httpRequest.request({
             method: 'POST',

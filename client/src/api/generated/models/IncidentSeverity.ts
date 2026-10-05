@@ -5,4 +5,4 @@
 /**
  * Impact severity of an incident
  */
-export type IncidentSeverity = 'minor' | 'major' | 'critical';
+export type IncidentSeverity = 'low' | 'med' | 'high' | 'critical';
