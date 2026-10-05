@@ -2,18 +2,21 @@ openapi: 3.0.2
 info:
   title: Relay Status Page API
   description: >
-    Technical contract for the Relay Status Page service. Defines service health status and incident
-    management endpoints consumed by the React frontend and monitoring agents. This specification is
-    the single source of truth for the frontend/backend integration.
+    Frozen OpenAPI 3.0 technical contract for the Relay Status Page service.
+    Defines ServiceStatus and Incident schemas plus the GET/POST endpoints under
+    /api/status and /api/incidents. This specification is the single source of
+    truth for frontend/backend integration and TypeScript client stub generation.
   version: 1.0.0
   contact:
     name: Relay Platform Team
+  x-relay-contract: frozen
+  x-relay-story: API Contract Definition & Client Stubs
 servers:
   - url: /
-    description: Relative to the API host
+    description: Relative to the API host (URI paths are versioned under /api)
 tags:
   - name: Status
-    description: Service health status
+    description: Service health status indicators
   - name: Incidents
     description: Incident lifecycle management
 paths:
@@ -33,6 +36,18 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ServiceStatus"
+              examples:
+                sample:
+                  summary: Two tracked services
+                  value:
+                    - id: svc-api
+                      name: Public API
+                      status: green
+                      last_checked: "2026-10-05T09:00:00.000Z"
+                    - id: svc-db
+                      name: Postgres
+                      status: yellow
+                      last_checked: "2026-10-05T09:00:05.000Z"
         "500":
           $ref: "#/components/responses/InternalError"
     post:
@@ -43,10 +58,19 @@ paths:
       description: Ingests a health-check result for a named service.
       requestBody:
         required: true
+        description: ServiceStatus payload expected by the backend
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/ServiceStatus"
+            examples:
+              healthy:
+                summary: Healthy service check
+                value:
+                  id: svc-api
+                  name: Public API
+                  status: green
+                  last_checked: "2026-10-05T09:00:00.000Z"
       responses:
         "201":
           description: Status recorded
@@ -64,7 +88,9 @@ paths:
         - Incidents
       operationId: listIncidents
       summary: List incidents
-      description: Returns known incidents, optionally filtered by query parameters.
+      description: >
+        Returns known incidents. Optional query filters narrow results by
+        service, severity, or resolved state.
       parameters:
         - name: service_id
           in: query
@@ -72,18 +98,21 @@ paths:
           description: Filter incidents by related service identifier
           schema:
             type: string
+          example: svc-api
         - name: severity
           in: query
           required: false
           description: Filter incidents by severity level
           schema:
             $ref: "#/components/schemas/IncidentSeverity"
+          example: high
         - name: resolved
           in: query
           required: false
           description: When true, return only resolved incidents; when false, only open ones
           schema:
             type: boolean
+          example: false
       responses:
         "200":
           description: Incident list
@@ -93,6 +122,17 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Incident"
+              examples:
+                open_incident:
+                  summary: One open high-severity incident
+                  value:
+                    - id: inc-1001
+                      service_id: svc-api
+                      title: Elevated error rates
+                      severity: high
+                      description: 5xx responses above SLO for the Public API.
+                      started_at: "2026-10-05T08:45:00.000Z"
+                      resolved_at: null
         "500":
           $ref: "#/components/responses/InternalError"
     post:
@@ -100,13 +140,25 @@ paths:
         - Incidents
       operationId: createIncident
       summary: Create an incident
-      description: Opens a new incident record.
+      description: Opens a new incident record using the Incident payload.
       requestBody:
         required: true
+        description: Incident payload expected by the backend
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/Incident"
+            examples:
+              new_incident:
+                summary: Open a critical incident
+                value:
+                  id: inc-1002
+                  service_id: svc-db
+                  title: Primary database unreachable
+                  severity: critical
+                  description: Connection timeouts from the API tier to Postgres.
+                  started_at: "2026-10-05T09:10:00.000Z"
+                  resolved_at: null
       responses:
         "201":
           description: Incident created
@@ -143,20 +195,24 @@ components:
         - name
         - status
         - last_checked
+      additionalProperties: false
       properties:
         id:
           type: string
           description: Stable service identifier
+          example: svc-api
         name:
           type: string
           minLength: 1
           description: Human-readable service name
+          example: Public API
         status:
           $ref: "#/components/schemas/ServiceStatusEnum"
         last_checked:
           type: string
           format: date-time
           description: Timestamp of the most recent health check (ISO-8601)
+          example: "2026-10-05T09:00:00.000Z"
     Incident:
       type: object
       description: A service interruption or degradation event
@@ -167,41 +223,51 @@ components:
         - severity
         - description
         - started_at
+      additionalProperties: false
       properties:
         id:
           type: string
           description: Stable incident identifier
+          example: inc-1001
         service_id:
           type: string
           description: Identifier of the affected service
+          example: svc-api
         title:
           type: string
           minLength: 1
           description: Short human-readable incident title
+          example: Elevated error rates
         severity:
           $ref: "#/components/schemas/IncidentSeverity"
         description:
           type: string
           description: Detailed description of the incident
+          example: 5xx responses above SLO for the Public API.
         started_at:
           type: string
           format: date-time
           description: When the incident began (ISO-8601)
+          example: "2026-10-05T08:45:00.000Z"
         resolved_at:
           type: string
           format: date-time
           nullable: true
           description: When the incident was resolved; null if still open
+          example: null
     ErrorBody:
       type: object
       required:
         - error
         - message
+      additionalProperties: false
       properties:
         error:
           type: string
+          example: bad_request
         message:
           type: string
+          example: Invalid ServiceStatus payload
         details:
           type: array
           items:
