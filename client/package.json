@@ -1,0 +1,13 @@
+{
+  "name": "@relay/status-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "React client for the Relay Status Page",
+  "type": "module",
+  "main": "src/api/index.ts",
+  "types": "src/api/index.ts",
+  "exports": {
+    ".": "./src/api/index.ts",
+    "./api": "./src/api/index.ts"
+  }
+}

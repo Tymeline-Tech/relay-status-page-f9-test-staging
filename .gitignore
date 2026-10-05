@@ -1,0 +1,7 @@
+# Dependencies are committed so offline verification containers can run
+# `npm run validate:openapi` and `npm test` without network installs.
+node_modules/.cache/
+# Only ignore the project build output — never package dist/ folders under node_modules.
+/dist/
+*.log
+.DS_Store
